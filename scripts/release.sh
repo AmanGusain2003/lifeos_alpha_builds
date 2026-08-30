@@ -18,6 +18,11 @@ MANIFEST="$ROOT/latest.json"
 
 # Constant across every release, and that is the whole point: the permanent
 # download link is releases/latest/download/<name>, so the name may never drift.
+#
+# Releases are published as normal releases, not prereleases. GitHub's idea of
+# the latest release skips prereleases entirely, so marking these -- every one
+# of which is an alpha, in a repository named for it -- would 404 the only link
+# any of this exists to provide.
 ANDROID_ASSET="LifeOS-android.apk"
 LINUX_ASSET="LifeOSCapture-linux-x86_64.AppImage"
 WINDOWS_ASSET="LifeOSCapture-windows-x64.exe"
@@ -144,7 +149,7 @@ gh release create "$version" \
   --repo "$REPO" \
   --title "$version" \
   --notes "${notes:-Alpha build $version.}" \
-  --prerelease \
+  --latest \
   "$staging"/*
 
 echo

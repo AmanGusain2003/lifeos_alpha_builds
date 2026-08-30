@@ -6,7 +6,7 @@
 # release, regenerates latest.json and pushes it. One command, so that shipping
 # a build is not a checklist anyone has to remember.
 #
-#   ./scripts/release.sh --android build/app/outputs/flutter-apk/app-release.apk
+#   ./scripts/release.sh --android build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
 #   ./scripts/release.sh --linux LifeOSCapture-x86_64.AppImage --windows LifeOSCapture.exe
 #   ./scripts/release.sh --version alpha-2026.09.01 --notes "Reminder buttons." --dry-run
 #
@@ -32,7 +32,10 @@ usage() {
   sed -n '3,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   cat <<'EOF'
 
-  --android PATH   APK to publish
+  --android PATH   APK to publish -- the arm64-v8a one from
+                   `flutter build apk --release --split-per-abi`, not the
+                   universal build, which is three times the size because it
+                   carries native libraries for CPUs the device does not have
   --linux PATH     AppImage to publish
   --windows PATH   .exe to publish
   --version TAG    release tag (default: alpha-<today>, counted if taken)

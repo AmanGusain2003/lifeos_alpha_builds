@@ -19,7 +19,9 @@ December. Nothing has to be edited to keep it current.
 
 ### Installing
 
-- **Android** — allow install from unknown sources, then open the APK.
+- **Android** — allow install from unknown sources, then open the APK. The
+  published build is `arm64-v8a`, which is every phone since roughly 2017. A
+  32-bit device needs the `armeabi-v7a` APK from the same build command.
 - **Linux** — `chmod +x LifeOSCapture-linux-x86_64.AppImage` and run it.
 - **Windows** — SmartScreen will warn about an unrecognised publisher; these
   builds are unsigned. *More info → Run anyway*.
@@ -57,9 +59,19 @@ needs a build to stay put.
 Everything is in one script. It uploads the binaries, regenerates the manifest
 and pushes — see [`scripts/release.sh`](scripts/release.sh).
 
+Build the APK split per ABI rather than as one universal file — a universal APK
+carries native libraries for every CPU and is three times the size for no
+benefit to anyone:
+
+```bash
+flutter build apk --release --split-per-abi \
+  --obfuscate --split-debug-info=build/symbols
+# 21 MB arm64-v8a, against 61 MB universal
+```
+
 ```bash
 ./scripts/release.sh \
-  --android ~/path/to/app-release.apk \
+  --android build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
   --linux   ~/path/to/LifeOSCapture-x86_64.AppImage \
   --windows ~/path/to/LifeOSCapture.exe
 ```

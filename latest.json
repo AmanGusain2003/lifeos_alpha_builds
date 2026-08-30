@@ -1,0 +1,29 @@
+{
+  "channel": "alpha",
+  "downloads": {
+    "android": {
+      "name": "LifeOS-android.apk",
+      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.08.31/LifeOS-android.apk",
+      "sha256": "f804d8fcef73c5fd5752b9c017f04550840ebb2760763cb90a5ca08ef7bfad78",
+      "size": 21204307,
+      "url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOS-android.apk"
+    },
+    "linux": {
+      "name": "LifeOSCapture-linux-x86_64.AppImage",
+      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.08.31/LifeOSCapture-linux-x86_64.AppImage",
+      "sha256": "919cc3acf08e0b9004ae6c48b7ab98cb652c79932db896e50c3b7bb77b2f9d55",
+      "size": 42047992,
+      "url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOSCapture-linux-x86_64.AppImage"
+    },
+    "windows": {
+      "name": "LifeOSCapture-windows-x64.exe",
+      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.08.31/LifeOSCapture-windows-x64.exe",
+      "sha256": "ab51ff2ea444e4902bf1344d29e91bd53a268e9ce429cc502444e7828b02000c",
+      "size": 25336901,
+      "url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOSCapture-windows-x64.exe"
+    }
+  },
+  "notes_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/tag/alpha-2026.08.31",
+  "released_at": "2026-08-30T19:05:46Z",
+  "version": "alpha-2026.08.31"
+}

@@ -1,0 +1,68 @@
+name: Refresh latest.json
+
+# scripts/release.sh already writes the manifest before it tags, so for releases
+# cut that way this is a no-op that confirms the two agree. It exists for the
+# other route: a release drafted by hand in the GitHub UI, where nothing would
+# otherwise update the manifest and it would quietly describe the release before
+# last.
+on:
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The default branch, not the tag: the manifest is committed to main,
+          # and a detached checkout would have nowhere to push it.
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Download this release's assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          # Hand-dispatched runs have no release attached, so fall back to
+          # whichever one is currently newest.
+          if [ -z "${TAG:-}" ]; then
+            TAG="$(gh release view --json tagName --jq .tagName)"
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          mkdir -p staging
+          # Sizes and hashes are taken from the bytes themselves, which means
+          # they have to be fetched. That is the cost of a checkable hash.
+          gh release download "$TAG" --dir staging
+
+      - name: Rewrite the manifest
+        env:
+          TAG: ${{ env.TAG }}
+        run: |
+          set -euo pipefail
+          python3 scripts/write_manifest.py \
+            --repo "${{ github.repository }}" \
+            --version "$TAG" \
+            --staging staging \
+            --out latest.json \
+            --android-asset LifeOS-android.apk \
+            --linux-asset LifeOSCapture-linux-x86_64.AppImage \
+            --windows-asset LifeOSCapture-windows-x64.exe
+
+      - name: Commit if it changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- latest.json; then
+            echo "Already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add latest.json
+          git commit -m "chore: point latest.json at ${TAG}"
+          git push

@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""Describe a release in latest.json.
+
+Kept separate from release.sh because the GitHub workflow needs the same thing
+for releases cut by hand through the web UI, and two implementations of the same
+manifest is how the two quietly stop agreeing.
+
+Sizes and hashes are read from the files actually being uploaded, never from the
+release metadata: the point of publishing a SHA-256 is that someone can check
+the bytes they downloaded, and a hash copied from the same place as the file
+proves nothing about it.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        # These run to a couple of hundred megabytes; reading one whole into
+        # memory to hash it would be careless on a laptop mid-build.
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def entry(repo: str, version: str, staging: Path, asset: str) -> dict | None:
+    path = staging / asset
+    if not path.is_file():
+        # The platform was not in this release. Saying nothing about it is
+        # honest; an entry pointing at a download that 404s is not.
+        return None
+    return {
+        "name": asset,
+        # Never changes, and always resolves to the newest release.
+        "url": f"https://github.com/{repo}/releases/latest/download/{asset}",
+        # This exact build, for anyone who needs it to stay put.
+        "pinned_url": f"https://github.com/{repo}/releases/download/{version}/{asset}",
+        "size": path.stat().st_size,
+        "sha256": sha256(path),
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", required=True)
+    parser.add_argument("--version", required=True)
+    parser.add_argument("--staging", required=True, type=Path)
+    parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--android-asset", required=True)
+    parser.add_argument("--linux-asset", required=True)
+    parser.add_argument("--windows-asset", required=True)
+    args = parser.parse_args()
+
+    downloads = {}
+    for platform, asset in (
+        ("android", args.android_asset),
+        ("linux", args.linux_asset),
+        ("windows", args.windows_asset),
+    ):
+        found = entry(args.repo, args.version, args.staging, asset)
+        if found is not None:
+            downloads[platform] = found
+
+    manifest = {
+        "channel": "alpha",
+        "version": args.version,
+        "released_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "notes_url": f"https://github.com/{args.repo}/releases/tag/{args.version}",
+        "downloads": downloads,
+    }
+
+    # Trailing newline and sorted keys so a release that changes nothing but the
+    # version produces a one-line diff rather than a reshuffled file.
+    args.out.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    print(f"latest.json -> {args.version} ({', '.join(downloads) or 'nothing'})")
+
+
+if __name__ == "__main__":
+    main()

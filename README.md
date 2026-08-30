@@ -87,3 +87,12 @@ today. `--version` overrides it, `--notes` sets the release body, and
 
 Releases made by hand through the GitHub UI are fine too: a workflow regenerates
 `latest.json` whenever a release is published.
+
+That workflow lands one `chore: point latest.json at …` commit per release even
+when the script already wrote the same file, because it stamps `released_at`
+from GitHub's own publish time rather than from whenever the manifest happened
+to be generated. That is the authoritative value, so the extra commit is the
+point rather than a loop.
+
+Releases are published as ordinary releases, never as prereleases: GitHub's
+`releases/latest` skips prereleases, which would 404 every link above.

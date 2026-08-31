@@ -59,15 +59,39 @@ needs a build to stay put.
 Everything is in one script. It uploads the binaries, regenerates the manifest
 and pushes — see [`scripts/release.sh`](scripts/release.sh).
 
+**Two version strings have to agree, and nothing enforces it.** The Android app
+decides whether to show its "update available" banner by comparing the version
+it was built with against the one the backend announces:
+
+- `pubspec.yaml` in `lifeOs-mobile` — `version: <name>+<build>`. The build
+  number only has to keep rising; Android treats the name as cosmetic.
+- `backend/app/assets/app_releases.json` in `lifeOs` — the `version` of the
+  newest `android` entry, which must be **exactly** that same name.
+
+They drift easily, because the two ship on different schedules — the APK from
+here, the manifest with a backend deploy — and the `alpha-<date>` tag this
+script generates is a third thing neither of them reads. When they drift,
+someone on a build newer than the manifest gets one dismissible "update
+available" sheet whose Download hands them what they already have. Dismissal is
+remembered per version, so it is an annoyance rather than a fault — but bump
+both files together and it never happens.
+
 Build the APK split per ABI rather than as one universal file — a universal APK
 carries native libraries for every CPU and is three times the size for no
 benefit to anyone:
 
 ```bash
 flutter build apk --release --split-per-abi \
-  --obfuscate --split-debug-info=build/symbols
+  --obfuscate --split-debug-info=build/symbols \
+  --dart-define=LIFE_OS_GOOGLE_SERVER_CLIENT_ID=332306488841-venoccdufprdc4lms8qdj01ldi6lgc8a.apps.googleusercontent.com
 # 21 MB arm64-v8a, against 61 MB universal
 ```
+
+The `--dart-define` is not optional. Without it the app reads Google Sign-In as
+unconfigured and hides the button on both the login and register screens — so a
+build missing the flag looks like a release that dropped a feature rather than
+one that lost a define. The value is an OAuth client ID: an identifier, not a
+secret.
 
 ```bash
 ./scripts/release.sh \

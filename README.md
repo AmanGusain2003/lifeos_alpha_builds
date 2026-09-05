@@ -1,7 +1,7 @@
 # lifeos_alpha_builds
 
-Alpha builds of Life OS for Windows, Linux and Android (iOS later). Expect rough
-edges, and expect them to change under you.
+Alpha builds of Life OS for macOS, Windows, Linux and Android (iOS later).
+Expect rough edges, and expect them to change under you.
 
 ## Download
 
@@ -12,6 +12,8 @@ These links never change. Each one always serves the newest alpha.
 | **Android** | [LifeOS-android.apk](https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOS-android.apk) |
 | **Linux** (x86_64) | [LifeOSCapture-linux-x86_64.AppImage](https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOSCapture-linux-x86_64.AppImage) |
 | **Windows** (x64) | [LifeOSCapture-windows-x64.exe](https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOSCapture-windows-x64.exe) |
+| **macOS** (Apple Silicon) | [LifeOSCapture-macos-arm64.zip](https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOSCapture-macos-arm64.zip) |
+| **macOS** (Intel) | [LifeOSCapture-macos-x86_64.zip](https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOSCapture-macos-x86_64.zip) |
 
 `releases/latest/download/<name>` is a GitHub redirect to whichever release is
 newest, so a link handed to someone in March still gives them the build from
@@ -22,9 +24,27 @@ December. Nothing has to be edited to keep it current.
 - **Android** — allow install from unknown sources, then open the APK. The
   published build is `arm64-v8a`, which is every phone since roughly 2017. A
   32-bit device needs the `armeabi-v7a` APK from the same build command.
-- **Linux** — `chmod +x LifeOSCapture-linux-x86_64.AppImage` and run it.
+- **Linux** — `chmod +x LifeOSCapture-linux-x86_64.AppImage` and run it. The
+  tray icon may not appear on GNOME: the icon needs the system's PyGObject
+  bindings, and a compiled extension only loads into an interpreter of the
+  same Python version, so an AppImage built on one distro's Python usually
+  can't borrow another's. It keeps running headless when that happens — the
+  shortcut, the notifications and `./LifeOSCapture-linux-x86_64.AppImage
+  toggle|status|open` all work regardless, and those are the real interface.
 - **Windows** — SmartScreen will warn about an unrecognised publisher; these
   builds are unsigned. *More info → Run anyway*.
+- **macOS** — take `arm64` for any Mac since 2020, `x86_64` for an Intel one
+  (Apple menu → About This Mac). Unzip, drag to `/Applications`, then once:
+
+  ```bash
+  xattr -dr com.apple.quarantine /Applications/LifeOSCapture.app
+  ```
+
+  Without that it reports itself as *damaged*, which is macOS's phrasing for
+  "downloaded and not notarized" — these builds are ad-hoc signed, there is no
+  Apple Developer account behind them. It runs as a menu-bar app with no Dock
+  icon; grant Microphone when asked, and Input Monitoring (System Settings →
+  Privacy & Security) if you want the global capture shortcut to work.
 
 ## For updaters: `latest.json`
 
@@ -95,10 +115,19 @@ secret.
 
 ```bash
 ./scripts/release.sh \
-  --android build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
-  --linux   ~/path/to/LifeOSCapture-x86_64.AppImage \
-  --windows ~/path/to/LifeOSCapture.exe
+  --android      build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+  --linux        ~/path/to/LifeOSCapture-x86_64.AppImage \
+  --windows      ~/path/to/LifeOSCapture.exe \
+  --macos-arm64  ~/path/to/LifeOSCapture-macos-arm64.zip \
+  --macos-x86_64 ~/path/to/LifeOSCapture-macos-x86_64.zip
 ```
+
+The four desktop binaries don't have to be built by hand. `lifeOs`'s **Build
+desktop capture** workflow builds all four on GitHub's own runners (macOS on
+two, since PyInstaller cross-compiles neither operating systems nor
+architectures), and running it with its `publish_alpha` input checked pushes
+them straight here through this same script — the source repository stays
+private, only the binaries land in this one.
 
 Pass only what you rebuilt. Anything left out is **carried forward** from the
 current release, because a release missing a platform would break that

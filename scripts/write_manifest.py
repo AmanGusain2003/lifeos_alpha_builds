@@ -56,6 +56,13 @@ def main() -> None:
     parser.add_argument("--android-asset", required=True)
     parser.add_argument("--linux-asset", required=True)
     parser.add_argument("--windows-asset", required=True)
+    # macOS ships two, because a .app built for one architecture does not run
+    # on the other and PyInstaller cannot produce a universal binary from a
+    # single-architecture build. Required like the rest on purpose: a caller
+    # that hasn't been taught about macOS should fail loudly here rather than
+    # quietly write a manifest that omits it.
+    parser.add_argument("--macos-arm64-asset", required=True)
+    parser.add_argument("--macos-x86-64-asset", required=True)
     args = parser.parse_args()
 
     downloads = {}
@@ -63,6 +70,8 @@ def main() -> None:
         ("android", args.android_asset),
         ("linux", args.linux_asset),
         ("windows", args.windows_asset),
+        ("macos_arm64", args.macos_arm64_asset),
+        ("macos_x86_64", args.macos_x86_64_asset),
     ):
         found = entry(args.repo, args.version, args.staging, asset)
         if found is not None:

@@ -52,7 +52,9 @@ jobs:
             --out latest.json \
             --android-asset LifeOS-android.apk \
             --linux-asset LifeOSCapture-linux-x86_64.AppImage \
-            --windows-asset LifeOSCapture-windows-x64.exe
+            --windows-asset LifeOSCapture-windows-x64.exe \
+            --macos-arm64-asset LifeOSCapture-macos-arm64.zip \
+            --macos-x86-64-asset LifeOSCapture-macos-x86_64.zip
 
       - name: Commit if it changed
         run: |

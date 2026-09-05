@@ -26,8 +26,13 @@ MANIFEST="$ROOT/latest.json"
 ANDROID_ASSET="LifeOS-android.apk"
 LINUX_ASSET="LifeOSCapture-linux-x86_64.AppImage"
 WINDOWS_ASSET="LifeOSCapture-windows-x64.exe"
+# Two of them, because a .app built for one architecture will not run on the
+# other: PyInstaller freezes whichever interpreter it is running under, so
+# there is no universal build to hand out instead.
+MACOS_ARM64_ASSET="LifeOSCapture-macos-arm64.zip"
+MACOS_X86_64_ASSET="LifeOSCapture-macos-x86_64.zip"
 
-android_src="" linux_src="" windows_src=""
+android_src="" linux_src="" windows_src="" macos_arm64_src="" macos_x86_64_src=""
 version="" notes="" dry_run=false carry_forward=true
 
 die() { printf 'release: %s\n' "$1" >&2; exit 1; }
@@ -43,6 +48,8 @@ usage() {
                    carries native libraries for CPUs the device does not have
   --linux PATH     AppImage to publish
   --windows PATH   .exe to publish
+  --macos-arm64 PATH    zipped .app for Apple Silicon
+  --macos-x86_64 PATH   zipped .app for Intel
   --version TAG    release tag (default: alpha-<today>, counted if taken)
   --notes TEXT     release body
   --no-carry-forward   publish only what was passed, leaving the other
@@ -56,6 +63,8 @@ while [[ $# -gt 0 ]]; do
     --android) android_src="${2:-}"; shift 2 ;;
     --linux)   linux_src="${2:-}";   shift 2 ;;
     --windows) windows_src="${2:-}"; shift 2 ;;
+    --macos-arm64)  macos_arm64_src="${2:-}";  shift 2 ;;
+    --macos-x86_64) macos_x86_64_src="${2:-}"; shift 2 ;;
     --version) version="${2:-}";     shift 2 ;;
     --notes)   notes="${2:-}";       shift 2 ;;
     --no-carry-forward) carry_forward=false; shift ;;
@@ -67,9 +76,10 @@ done
 
 command -v gh >/dev/null || die "gh is not installed"
 gh auth status >/dev/null 2>&1 || die "gh is not logged in -- run: gh auth login"
-[[ -n "$android_src$linux_src$windows_src" ]] || { usage; die "nothing to publish"; }
+[[ -n "$android_src$linux_src$windows_src$macos_arm64_src$macos_x86_64_src" ]] \
+  || { usage; die "nothing to publish"; }
 
-for src in "$android_src" "$linux_src" "$windows_src"; do
+for src in "$android_src" "$linux_src" "$windows_src" "$macos_arm64_src" "$macos_x86_64_src"; do
   [[ -z "$src" ]] && continue
   [[ -f "$src" ]] || die "no such file: $src"
   [[ -s "$src" ]] || die "empty file: $src"
@@ -109,7 +119,9 @@ echo "Release $version${previous:+  (previous: $previous)}"
 
 for pair in "android:$android_src:$ANDROID_ASSET" \
             "linux:$linux_src:$LINUX_ASSET" \
-            "windows:$windows_src:$WINDOWS_ASSET"; do
+            "windows:$windows_src:$WINDOWS_ASSET" \
+            "macos-arm64:$macos_arm64_src:$MACOS_ARM64_ASSET" \
+            "macos-x86_64:$macos_x86_64_src:$MACOS_X86_64_ASSET"; do
   platform="${pair%%:*}"; rest="${pair#*:}"
   src="${rest%%:*}"; asset="${rest#*:}"
 
@@ -137,7 +149,8 @@ fi
 # release rather than the one before it.
 python3 "$ROOT/scripts/write_manifest.py" \
   --repo "$REPO" --version "$version" --staging "$staging" --out "$MANIFEST" \
-  --android-asset "$ANDROID_ASSET" --linux-asset "$LINUX_ASSET" --windows-asset "$WINDOWS_ASSET"
+  --android-asset "$ANDROID_ASSET" --linux-asset "$LINUX_ASSET" --windows-asset "$WINDOWS_ASSET" \
+  --macos-arm64-asset "$MACOS_ARM64_ASSET" --macos-x86-64-asset "$MACOS_X86_64_ASSET"
 
 git -C "$ROOT" add latest.json
 if ! git -C "$ROOT" diff --cached --quiet; then
@@ -160,4 +173,6 @@ echo "Permanent links (unchanged, always newest):"
 echo "  https://github.com/$REPO/releases/latest/download/$ANDROID_ASSET"
 echo "  https://github.com/$REPO/releases/latest/download/$LINUX_ASSET"
 echo "  https://github.com/$REPO/releases/latest/download/$WINDOWS_ASSET"
+echo "  https://github.com/$REPO/releases/latest/download/$MACOS_ARM64_ASSET"
+echo "  https://github.com/$REPO/releases/latest/download/$MACOS_X86_64_ASSET"
 echo "  https://cdn.jsdelivr.net/gh/$REPO@latest/latest.json"

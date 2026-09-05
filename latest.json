@@ -3,41 +3,41 @@
   "downloads": {
     "android": {
       "name": "LifeOS-android.apk",
-      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.05/LifeOS-android.apk",
+      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.05.2/LifeOS-android.apk",
       "sha256": "d3946ab23cc9e88014c716d8874d952c529eba056ed7f182acb4a76f21ecefa3",
       "size": 21271095,
       "url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOS-android.apk"
     },
     "linux": {
       "name": "LifeOSCapture-linux-x86_64.AppImage",
-      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.05/LifeOSCapture-linux-x86_64.AppImage",
-      "sha256": "cb2fe4638cb145088692709e3bc6252eae30e59b68a1f73e75d8d18347c3a216",
-      "size": 29243896,
+      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.05.2/LifeOSCapture-linux-x86_64.AppImage",
+      "sha256": "0a3559a02ce7ff3bd0571f971428e26924698440ad02b52842a5ded3242bf776",
+      "size": 42084856,
       "url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOSCapture-linux-x86_64.AppImage"
     },
     "macos_arm64": {
       "name": "LifeOSCapture-macos-arm64.zip",
-      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.05/LifeOSCapture-macos-arm64.zip",
-      "sha256": "4f3248b8bbd272c13d53b1882c3384cfb754f70130844fe81809463849957374",
-      "size": 22060716,
+      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.05.2/LifeOSCapture-macos-arm64.zip",
+      "sha256": "cd6867a127b8c7e22a3246f80ffca9be15b2b156890f28f13f5cb560f51101fb",
+      "size": 22109667,
       "url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOSCapture-macos-arm64.zip"
     },
     "macos_x86_64": {
       "name": "LifeOSCapture-macos-x86_64.zip",
-      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.05/LifeOSCapture-macos-x86_64.zip",
-      "sha256": "ed8d53ae608a9ad84d542565504c081c75bd106f05d8e055f44a88b067deada3",
-      "size": 23339898,
+      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.05.2/LifeOSCapture-macos-x86_64.zip",
+      "sha256": "85976f50f96fa9234eddd927646a41c2e9e173c95fc05157ad605dd8941654d4",
+      "size": 23390508,
       "url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOSCapture-macos-x86_64.zip"
     },
     "windows": {
       "name": "LifeOSCapture-windows-x64.exe",
-      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.05/LifeOSCapture-windows-x64.exe",
-      "sha256": "fbae108c1a900352d0937a0087f65694d3985441c192c161506436210a40252c",
-      "size": 25626112,
+      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.05.2/LifeOSCapture-windows-x64.exe",
+      "sha256": "045469d073e82e9fc09ce91667023f56916bccd085d402e5bcb4a6df1093073c",
+      "size": 25675368,
       "url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOSCapture-windows-x64.exe"
     }
   },
-  "notes_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/tag/alpha-2026.09.05",
-  "released_at": "2026-09-05T08:59:55Z",
-  "version": "alpha-2026.09.05"
+  "notes_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/tag/alpha-2026.09.05.2",
+  "released_at": "2026-09-05T15:20:49Z",
+  "version": "alpha-2026.09.05.2"
 }

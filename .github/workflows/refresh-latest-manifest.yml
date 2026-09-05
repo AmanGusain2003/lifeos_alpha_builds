@@ -5,6 +5,12 @@ name: Refresh latest.json
 # other route: a release drafted by hand in the GitHub UI, where nothing would
 # otherwise update the manifest and it would quietly describe the release before
 # last.
+#
+# "No-op" only became true once released_at stopped being the time this ran --
+# see released_at() in scripts/write_manifest.py. Before that every release
+# looked changed here, and the job died pushing to a protected branch. It now
+# opens a pull request when it genuinely has something to say, which for a
+# release.sh release is never.
 on:
   release:
     types: [published, edited]
@@ -12,6 +18,10 @@ on:
 
 permissions:
   contents: write
+  # main requires a pull request, and unlike a repository admin pushing from a
+  # laptop the bot cannot bypass that -- it used to just fail on the rejected
+  # push. Now it proposes the change instead.
+  pull-requests: write
 
 jobs:
   refresh:
@@ -35,6 +45,11 @@ jobs:
             TAG="$(gh release view --json tagName --jq .tagName)"
           fi
           echo "TAG=$TAG" >> "$GITHUB_ENV"
+          # Read from the release rather than taken from the clock, so a rerun
+          # (every `edited` event is one) describes the same release the same
+          # way instead of restamping it with the time of the rerun.
+          echo "PUBLISHED_AT=$(gh release view "$TAG" --json publishedAt --jq .publishedAt)" \
+            >> "$GITHUB_ENV"
           mkdir -p staging
           # Sizes and hashes are taken from the bytes themselves, which means
           # they have to be fetched. That is the cost of a checkable hash.
@@ -43,11 +58,13 @@ jobs:
       - name: Rewrite the manifest
         env:
           TAG: ${{ env.TAG }}
+          PUBLISHED_AT: ${{ env.PUBLISHED_AT }}
         run: |
           set -euo pipefail
           python3 scripts/write_manifest.py \
             --repo "${{ github.repository }}" \
             --version "$TAG" \
+            --released-at "$PUBLISHED_AT" \
             --staging staging \
             --out latest.json \
             --android-asset LifeOS-android.apk \
@@ -56,15 +73,49 @@ jobs:
             --macos-arm64-asset LifeOSCapture-macos-arm64.zip \
             --macos-x86-64-asset LifeOSCapture-macos-x86_64.zip
 
-      - name: Commit if it changed
+      - name: Propose the change if there is one
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ env.TAG }}
+          BASE: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
           if git diff --quiet -- latest.json; then
-            echo "Already current."
+            echo "Already current -- release.sh wrote this manifest before it tagged."
             exit 0
           fi
+
+          # Reaching here means the manifest does not describe this release:
+          # somebody drafted it by hand in the web UI, which is the case this
+          # workflow exists for. A release cut with scripts/release.sh has
+          # already written the same file, byte for byte, and stops above.
+          branch="chore/latest-json-${TAG}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
           git add latest.json
           git commit -m "chore: point latest.json at ${TAG}"
-          git push
+          # Forced, because `edited` fires again on every later edit of the same
+          # release and each rerun should update its branch rather than collide
+          # with it.
+          git push -f origin "$branch"
+
+          open="$(gh pr list --head "$branch" --state open --json url --jq '.[0].url // ""')"
+          if [ -n "$open" ]; then
+            echo "Updated the open pull request: $open"
+            exit 0
+          fi
+
+          if ! gh pr create --base "$BASE" --head "$branch" \
+              --title "chore: point latest.json at ${TAG}" \
+              --body "\`${TAG}\` was published without \`scripts/release.sh\`, so \
+          \`latest.json\` still describes the release before it. Sizes and \
+          SHA-256s here are read from the release's own assets. Merging this \
+          points the permanent download links and the jsDelivr manifest at \
+          \`${TAG}\`."; then
+            echo "Pushed $branch but could not open a pull request." >&2
+            echo "Check Settings -> Actions -> General -> 'Allow GitHub Actions to create" >&2
+            echo "and approve pull requests', or open it by hand:" >&2
+            echo "  https://github.com/${{ github.repository }}/compare/$branch?expand=1" >&2
+            exit 1
+          fi

@@ -47,6 +47,30 @@ def entry(repo: str, version: str, staging: Path, asset: str) -> dict | None:
     }
 
 
+def released_at(out: Path, version: str, given: str) -> str:
+    """A manifest already describing this exact version keeps the timestamp it
+    has.
+
+    Everything else in here is derived from the release's own bytes, so
+    regenerating a manifest for the same version reproduces it exactly --
+    except this, which used to be datetime.now() and so came out different
+    every run. That was enough to make the refresh workflow believe every
+    release.sh release had changed something, and try to push a commit to a
+    protected branch it can't push to. Same version, same release: same
+    timestamp, and the workflow correctly finds nothing to do.
+    """
+    existing_at = ""
+    try:
+        existing = json.loads(out.read_text())
+        if existing.get("version") == version:
+            existing_at = str(existing.get("released_at") or "")
+    except (OSError, ValueError, AttributeError):
+        pass  # No manifest yet, or an unreadable one -- treat it as new.
+    return existing_at or given.strip() or datetime.now(timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", required=True)
@@ -63,6 +87,12 @@ def main() -> None:
     # quietly write a manifest that omits it.
     parser.add_argument("--macos-arm64-asset", required=True)
     parser.add_argument("--macos-x86-64-asset", required=True)
+    parser.add_argument(
+        "--released-at",
+        default="",
+        help="when the release went out (default: now). The workflow passes the "
+        "release's own published_at so a rerun doesn't invent a new time.",
+    )
     args = parser.parse_args()
 
     downloads = {}
@@ -80,7 +110,7 @@ def main() -> None:
     manifest = {
         "channel": "alpha",
         "version": args.version,
-        "released_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "released_at": released_at(args.out, args.version, args.released_at),
         "notes_url": f"https://github.com/{args.repo}/releases/tag/{args.version}",
         "downloads": downloads,
     }

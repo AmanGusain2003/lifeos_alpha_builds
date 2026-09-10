@@ -3,13 +3,13 @@
   "downloads": {
     "android": {
       "name": "LifeOS-android.apk",
-      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.10/LifeOS-android.apk",
-      "sha256": "29a322a0d4becfe516c671e69b710ff53c3bd5313ced7b704b65f0ceab023262",
+      "pinned_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/download/alpha-2026.09.10.2/LifeOS-android.apk",
+      "sha256": "5168887595b486fe534a077eb02a9c6d28a07f0636d543c7117b8e55d60e7c2f",
       "size": 23107375,
       "url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/latest/download/LifeOS-android.apk"
     }
   },
-  "notes_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/tag/alpha-2026.09.10",
-  "released_at": "2026-09-09T20:27:13Z",
-  "version": "alpha-2026.09.10"
+  "notes_url": "https://github.com/AmanGusain2003/lifeos_alpha_builds/releases/tag/alpha-2026.09.10.2",
+  "released_at": "2026-09-10T04:45:51Z",
+  "version": "alpha-2026.09.10.2"
 }

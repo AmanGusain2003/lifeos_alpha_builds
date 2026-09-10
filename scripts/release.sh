@@ -99,10 +99,12 @@ GOOGLE_CLIENT_ID_PREFIX="332306488841-venocc"
 if [[ -n "$android_src" ]] && command -v unzip >/dev/null && command -v strings >/dev/null; then
   snapshot_hits=0
   for abi in arm64-v8a armeabi-v7a x86_64; do
-    if unzip -p "$android_src" "lib/$abi/libapp.so" 2>/dev/null \
-        | strings 2>/dev/null | grep -q "$GOOGLE_CLIENT_ID_PREFIX"; then
-      snapshot_hits=$((snapshot_hits + 1))
-    fi
+    # grep -c rather than -q, deliberately: -q exits on the first match, which
+    # hands unzip a SIGPIPE, and under `set -o pipefail` that fails the whole
+    # pipeline on exactly the builds that pass. -c reads to the end.
+    found="$(unzip -p "$android_src" "lib/$abi/libapp.so" 2>/dev/null \
+      | strings 2>/dev/null | grep -c "$GOOGLE_CLIENT_ID_PREFIX" || true)"
+    [[ "${found:-0}" -gt 0 ]] && snapshot_hits=$((snapshot_hits + 1))
   done
   [[ "$snapshot_hits" -gt 0 ]] || die "this APK has no Google sign-in button -- rebuild with
   flutter build apk --release --split-per-abi \\

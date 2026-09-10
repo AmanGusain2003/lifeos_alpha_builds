@@ -85,6 +85,30 @@ for src in "$android_src" "$linux_src" "$windows_src" "$macos_arm64_src" "$macos
   [[ -s "$src" ]] || die "empty file: $src"
 done
 
+# An APK built without the Google client id define hides the sign-in button
+# entirely rather than failing at it: AppConfig.googleServerClientId defaults to
+# '', which makes NativeGoogleIdentityService.isConfigured false, and both the
+# login and register screens then render with no Google button at all. That
+# reads as a plain screen rather than a misconfiguration, so nobody notices
+# until someone tries to sign in. alpha-2026.09.10 shipped that way.
+#
+# Checked against the Dart snapshot, because the APK as a whole is not
+# evidence: the id string is in there either way, carried by the bundled
+# google-services.json that the app never reads.
+GOOGLE_CLIENT_ID_PREFIX="332306488841-venocc"
+if [[ -n "$android_src" ]] && command -v unzip >/dev/null && command -v strings >/dev/null; then
+  snapshot_hits=0
+  for abi in arm64-v8a armeabi-v7a x86_64; do
+    if unzip -p "$android_src" "lib/$abi/libapp.so" 2>/dev/null \
+        | strings 2>/dev/null | grep -q "$GOOGLE_CLIENT_ID_PREFIX"; then
+      snapshot_hits=$((snapshot_hits + 1))
+    fi
+  done
+  [[ "$snapshot_hits" -gt 0 ]] || die "this APK has no Google sign-in button -- rebuild with
+  flutter build apk --release --split-per-abi \\
+    --dart-define=LIFE_OS_GOOGLE_SERVER_CLIENT_ID=332306488841-venoccdufprdc4lms8qdj01ldi6lgc8a.apps.googleusercontent.com"
+fi
+
 # A tag per day, counted if the day already has one. Alpha builds come in
 # bursts, and a date alone would collide by the second build of an afternoon.
 if [[ -z "$version" ]]; then
